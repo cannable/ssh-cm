@@ -83,6 +83,15 @@ proc printDefaults {} {
 #           Writes the list to stdout
 #
 proc printConnections {} {
+    puts Connections
+    db eval {SELECT * FROM connections;} conn {
+        puts [format "%s. %s:\t%s@%s\t(%s)" \
+            $conn(index) \
+            $conn(nickname) \
+            $conn(user) \
+            $conn(host) \
+            $conn(description)]
+    }
 }
 
 
@@ -158,6 +167,9 @@ if {$argc == 0} {
     printHelp
 } else {
     switch -- [lindex $argv 0] {
+        defaults    printDefaults
+        list        printConnections
+
         default {
             puts stderr "Eh?"
             printHelp
