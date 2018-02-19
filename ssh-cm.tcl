@@ -185,14 +185,13 @@ proc addConnection {args} {
 
     # Make sure the nickname doesn't exist
     set v [db eval {SELECT 'index' from connections WHERE nickname=:nickname;}]
-    puts $v
 
     if {[string length $v]} {
         puts stderr "Nickname '$nickname' already in use!"
         exit 1
     }
 
-    set validNames [list -host -user -description -arguments -identity -command]
+    set validNames [list -host -user -description -args -identity -command]
 
     # Go through each argument and make sure it's valid
     foreach {setting val} $params {
@@ -217,9 +216,16 @@ proc addConnection {args} {
     }
 
     # Okay, we can FINALLY add the host
-    set statement "INSERT INTO 'connections'"
+    set settings "'nickname'"
+    set values "'$nickname'"
     foreach {setting val} $params {
+        append settings ",'[string trimleft $setting -]'"
+        append values ",'[string trimleft $val -]'"
     }
+
+    set statement "INSERT INTO 'connections' ($settings) VALUES ($values);"
+
+    db eval $statement
 }
 
 
@@ -253,9 +259,9 @@ if {$createFlag} {
             'index'         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             'nickname'      TEXT NOT NULL UNIQUE,
             'host'          TEXT NOT NULL,
-            'user'          TEXT NOT NULL,
+            'user'          TEXT,
             'description'   TEXT,
-            'arguments'     TEXT,
+            'args'          TEXT,
             'identity'      TEXT,
             'command'       TEXT
         );
