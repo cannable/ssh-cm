@@ -119,7 +119,7 @@ proc printConnections {} {
 proc setDefault {args} {
     # Perform sanity checks
 
-    # If we didn't get an odd number of args, bail
+    # If we got an odd number of args, bail
     if {([llength $args] % 2)} {
         puts stderr "Wrong number of arguments passed to script."
         exit 1
@@ -148,7 +148,84 @@ proc setDefault {args} {
 }
 
 
+# addConnection --
+#
+#           Add a new connection to the DB
+#
+# Arguments:
+#           Arguments passed to script, minus root command name
+#
+# Results:
+#           Stores a new connection in the DB
+#
+proc addConnection {args} {
+    # Perform sanity checks
+
+    # Bail if we didn't get enough arguments
+    if {! ([llength $args] % 2)} {
+        puts stderr "Wrong number of arguments passed to script."
+        exit 1
+    } elseif {([llength $args] < 3)} {
+        puts stderr "You need to specify, at least, a host."
+        exit 1
+    }
+
+    # First arg is always the nickname
+    set nickname [lindex $args 0]
+    set params [lrange $args 1 end]
+
+    # Validate nickname
+    if {[regexp -- {^[0-9]}  $nickname]} {
+        puts stderr "Nickname cannot start with a number."
+        exit 1
+    } elseif {[regexp -- {[ \t]}  $nickname]} {
+        puts stderr "Nickname ($nickname) must not contain spaces or tabs"
+        exit 1
+    }
+
+    # Make sure the nickname doesn't exist
+    set v [db eval {SELECT 'index' from connections WHERE nickname=:nickname;}]
+    puts $v
+
+    if {[string length $v]} {
+        puts stderr "Nickname '$nickname' already in use!"
+        exit 1
+    }
+
+    set validNames [list -host -user -description -arguments -identity -command]
+
+    # Go through each argument and make sure it's valid
+    foreach {setting val} $params {
+        if {$setting ni $validNames} {
+            puts stderr "'$setting' is not a valid argument."
+            exit 1
+        }
+    }
+
+    # Make sure a host was specified
+    set flagHost 0
+    foreach {setting val} $params {
+        if {$setting eq "-host"} {
+            set flagHost 1
+            break
+        }
+    }
+
+    if {! $flagHost} {
+        puts stderr "You must specify a host."
+        exit 1
+    }
+
+    # Okay, we can FINALLY add the host
+    set statement "INSERT INTO 'connections'"
+    foreach {setting val} $params {
+    }
+}
+
+
+# ------------------------------------------------------------------------------
 # Main
+
 
 if {![file exists $dbPath]} {
     set createFlag 1
@@ -222,6 +299,7 @@ if {$argc == 0} {
         defaults    printDefaults
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
+        add         {addConnection {*}[lrange $argv 1 end]}
 
         default {
             puts stderr "Eh?"
