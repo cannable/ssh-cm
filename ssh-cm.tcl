@@ -54,7 +54,7 @@ proc printHelp {} {
 }
 
 
-# printConnections --
+# printDefaults --
 #
 #           Prints a list of the default settings
 #
@@ -85,6 +85,17 @@ proc printDefaults {} {
 proc printConnections {} {
     puts Connections
     db eval {SELECT * FROM connections;} conn {
+        if {$conn(user) eq ""} {
+            set defUser [db eval {
+                SELECT value FROM defaults WHERE setting = 'user'
+            }]
+
+            if {$defUser eq "\{\}"} {
+                set conn(user) {}
+            } else {
+                set conn(user) $defUser
+            }
+        }
         puts [format "%s. %s:\t%s@%s\t(%s)" \
             $conn(index) \
             $conn(nickname) \
@@ -94,6 +105,47 @@ proc printConnections {} {
     }
 }
 
+
+# setDefault --
+#
+#           Sets a default parameter
+#
+# Arguments:
+#           Arguments passed to script, minus root command name
+#
+# Results:
+#           Stores the new default setting in the DB
+#
+proc setDefault {args} {
+    # Perform sanity checks
+
+    # If we didn't get an odd number of args, bail
+    if {([llength $args] % 2)} {
+        puts stderr "Wrong number of arguments passed to script."
+        exit 1
+    }
+
+    set validNames [list -user -args -identity -command]
+
+    # Go through each argument and make sure it's valid
+    foreach {def val} $args {
+        if {$def ni $validNames} {
+            puts stderr "'$def' is not a valid argument."
+            exit 1
+        }
+    }
+
+    # Update each default setting
+    foreach {def val} $args {
+        set name [string trimleft $def -]
+        if {[string length $val]} {
+            db eval {UPDATE 'defaults' SET value=:val WHERE setting=:name;}
+        } else {
+            # Value is blank, nullify value
+            db eval {UPDATE 'defaults' SET value=NULL WHERE setting=:name;}
+        }
+    }
+}
 
 
 # Main
@@ -169,6 +221,7 @@ if {$argc == 0} {
     switch -- [lindex $argv 0] {
         defaults    printDefaults
         list        printConnections
+        def         {setDefault {*}[lrange $argv 1 end]}
 
         default {
             puts stderr "Eh?"
