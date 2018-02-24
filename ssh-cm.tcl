@@ -32,6 +32,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package require sqlite3
+package require csv
 
 set scriptDir [file dirname [info script]]
 set dbPath [file join $scriptDir {data.sqlite3}]
@@ -229,6 +230,46 @@ proc addConnection {args} {
 }
 
 
+# exportCSV --
+#
+#           Prints a list of connections in CSV format
+#
+# Arguments:
+#           none
+#
+# Results:
+#           Writes the list to stdout
+#
+proc exportCSV {} {
+    set header {
+        index
+        nickname
+        host
+        user
+        description
+        args
+        identity
+        command
+    }
+
+    # Print out the header row
+    puts [::csv::join $header]
+
+    # Loop through each row in the connections table, printing the connection
+    # info to stdout formatted as CSV
+    db eval {SELECT * FROM connections;} conn {
+        set row {}
+
+        foreach column $header {
+            lappend row $conn($column)
+        }
+
+        puts [::csv::join $row]
+    }
+
+}
+
+
 # ------------------------------------------------------------------------------
 # Main
 
@@ -306,6 +347,7 @@ if {$argc == 0} {
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
         add         {addConnection {*}[lrange $argv 1 end]}
+        export      exportCSV
 
         default {
             puts stderr "Eh?"
