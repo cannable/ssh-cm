@@ -270,6 +270,66 @@ proc exportCSV {} {
 }
 
 
+# importCSV --
+#
+#           Reads a CSV file from stdin and imports connections
+#
+# Arguments:
+#           none
+#
+# Results:
+#           Imports connections into the DB, clobbering any existing
+#           connections with conflicting nicknames. NOTE: If the CSV input
+#           contains an index field, it'll be ignored.
+#
+proc importCSV {} {
+    # Read the first line to ensure we have a header
+
+    if {[gets stdin header] < 0} {
+        puts stderr "You must pass CSV content to stdin."
+        exit 1
+    }
+
+    #puts $header
+    set columns [::csv::split $header]
+
+    # Loop through each line, mapping values to column names
+    while {[gets stdin line] >= 0} {
+        set row [::csv::split $line]
+
+        set addArgs {}
+
+        # Assemble connection add args
+        set counter -1
+        foreach col $columns {
+            if {$col eq "index"} {
+                incr counter
+            } else {
+                set value [lindex $row [incr counter]]
+
+                # If the value is empty, don't add it
+                if {!($value eq {})} {
+                    lappend addArgs "-$col"
+                    lappend addArgs $value
+                }
+            }
+        }
+
+        puts "Trying to import:"
+        puts "\t[info script] add $addArgs"
+
+        # See if nickname exists. If it does, delete it
+
+
+        #puts $addArgs
+
+        # TODO: Enable this
+        #addConnection {*}$addArgs
+    }
+
+}
+
+
 # ------------------------------------------------------------------------------
 # Main
 
@@ -348,6 +408,7 @@ if {$argc == 0} {
         def         {setDefault {*}[lrange $argv 1 end]}
         add         {addConnection {*}[lrange $argv 1 end]}
         export      exportCSV
+        import      importCSV
 
         default {
             puts stderr "Eh?"
