@@ -240,7 +240,16 @@ proc setDefault {args} {
 # Results:
 #           Deletes the passed connection row from the DB
 #
-proc setConnection {conn} {
+proc setConnection {conn args} {
+    # Perform sanity checks
+
+    # Bail if we didn't get enough arguments
+    if {([llength $args] % 2)} {
+        puts stderr "Wrong number of arguments passed to script."
+        exit 1
+    }
+
+    # Figure out if we got a nickname or ID
     if {[isID $conn]} {
         # Got an ID
         if {! [idExists $conn]} {
@@ -256,6 +265,7 @@ proc setConnection {conn} {
             exit 1
         }
 
+        # Since we got a nickname, we need the ID
         set id [db eval {SELECT id FROM connections WHERE nickname=:conn;}]
     } else {
         # Got something incomprehensible
@@ -263,7 +273,42 @@ proc setConnection {conn} {
         exit 1
     }
 
-    puts $id
+    set validNames {
+        -nickname
+        -host
+        -user
+        -description
+        -args
+        -identity
+        -command
+    }
+
+    # Go through each argument and make sure it's valid
+    foreach {setting val} $args {
+        if {$setting ni $validNames} {
+            puts stderr "'$setting' is not a valid argument."
+            exit 1
+        }
+    }
+
+    # Assemble SQL Statement
+    set statement "UPDATE 'connections' SET "
+
+    set flagFirstPass 1
+    foreach {setting val} $args {
+        # Tack on a comma if we're not the first arg
+        if {! $flagFirstPass} {
+            append statement ","
+        } else {
+            set flagFirstPass 0
+        }
+
+        append statement "[string trimleft $setting -]='$val'"
+    }
+
+    append statement " WHERE id=:id;"
+
+    db eval $statement
 }
 
 
