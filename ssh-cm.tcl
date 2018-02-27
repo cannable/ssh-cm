@@ -275,6 +275,7 @@ proc setConnection {conn args} {
     }
 
     set validNames {
+        -id
         -nickname
         -host
         -user
@@ -289,6 +290,16 @@ proc setConnection {conn args} {
         if {$setting ni $validNames} {
             puts stderr "'$setting' is not a valid argument."
             exit 1
+        }
+
+        if {$setting eq "-id"} {
+            # Set command is trying to change the ID.
+            # Make sure there's no collision
+
+            if {[idExists $val]} {
+                puts stderr "Can't change connection ID, as one already exists."
+                exit 1
+            }
         }
     }
 
