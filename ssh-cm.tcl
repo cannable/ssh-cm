@@ -261,7 +261,15 @@ proc addConnection {args} {
         exit 1
     }
 
-    set validNames [list -host -user -description -args -identity -command]
+    set validNames {
+        -nickname
+        -host
+        -user
+        -description
+        -args
+        -identity
+        -command
+    }
 
     # Go through each argument and make sure it's valid
     foreach {setting val} $params {
@@ -428,7 +436,7 @@ proc importCSV {} {
             #rmConnection $nickname
         }
 
-        puts "[info script] add $addArgs\; \# Add '$nickname'"
+        puts "[info script] add $nickname $addArgs\; \# Add '$nickname'"
 
         # TODO: Enable this
         #addConnection {*}$addArgs
