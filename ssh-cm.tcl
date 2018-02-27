@@ -107,6 +107,27 @@ proc printConnections {} {
 }
 
 
+# nicknameExists --
+#
+#           Check to see if the passed nickname exist
+#
+# Arguments:
+#           Arguments passed to script, minus root command name
+#
+# Results:
+#           Stores the new default setting in the DB
+#
+proc nicknameExists {nickname} {
+    set r [db eval {SELECT 'index' FROM connections WHERE nickname=:nickname;}]
+
+    if {$r eq "index"} {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+
 # setDefault --
 #
 #           Sets a default parameter
@@ -184,10 +205,7 @@ proc addConnection {args} {
         exit 1
     }
 
-    # Make sure the nickname doesn't exist
-    set v [db eval {SELECT 'index' from connections WHERE nickname=:nickname;}]
-
-    if {[string length $v]} {
+    if {[nicknameExists $nickname]} {
         puts stderr "Nickname '$nickname' already in use!"
         exit 1
     }
@@ -298,6 +316,7 @@ proc importCSV {} {
         set row [::csv::split $line]
 
         set addArgs {}
+        set nickname {}
 
         # Assemble connection add args
         set counter -1
@@ -306,6 +325,11 @@ proc importCSV {} {
                 incr counter
             } else {
                 set value [lindex $row [incr counter]]
+
+                # We need the nickname later
+                if {$col eq "nickname"} {
+                    set nickname $value
+                }
 
                 # If the value is empty, don't add it
                 if {!($value eq {})} {
@@ -318,8 +342,20 @@ proc importCSV {} {
         puts "Trying to import:"
         puts "\t[info script] add $addArgs"
 
-        # See if nickname exists. If it does, delete it
+        # Ensure we got a nickname
+        if {$nickname eq {}} {
+            echo stderr "ERROR: Nickname doesn't exist. Bailing."
+        }
 
+        # See if nickname exists. If it does, delete it
+        if {[nicknameExists $nickname]} {
+            puts "Nickname '$nickname' exists, delete it:"
+        }
+
+
+
+        # TODO: Look for connection. Then invoke rm command.
+        # TODO: Write rm command.
 
         #puts $addArgs
 
