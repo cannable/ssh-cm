@@ -523,7 +523,11 @@ proc importCSV {} {
         set counter -1
         foreach col $columns {
             if {$col eq "id"} {
-                incr counter
+                set id [lindex $row [incr counter]]
+
+                if {![idExists $id]} {
+                    lappend addArgs "-id" $id
+                }
             } else {
                 set value [lindex $row [incr counter]]
 
@@ -545,18 +549,18 @@ proc importCSV {} {
             echo stderr "ERROR: Nickname doesn't exist. Bailing."
         }
 
-        # See if nickname exists. If it does, delete it
+        # See if nickname exists. If it does, we'll do a set vs. add
         if {[nicknameExists $nickname]} {
-            puts "[info script] rm $nickname\; \# Remove old '$nickname'"
+            puts "[info script] set $nickname $addArgs\; \# Alter '$nickname'"
 
             # TODO: Enable this
-            #rmConnection $nickname
+            #setConnection {*}$addArgs
+        } else {
+            puts "[info script] add $nickname $addArgs\; \# Add '$nickname'"
+
+            # TODO: Enable this
+            #addConnection {*}$addArgs
         }
-
-        puts "[info script] add $nickname $addArgs\; \# Add '$nickname'"
-
-        # TODO: Enable this
-        #addConnection {*}$addArgs
     }
 
 }
