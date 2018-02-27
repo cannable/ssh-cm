@@ -236,6 +236,7 @@ proc setDefault {args} {
 #
 # Arguments:
 #           conn    Connection ID or nickname
+#           args    Key/value pairs of command arguments, as passed by the shell
 #
 # Results:
 #           Deletes the passed connection row from the DB
@@ -317,26 +318,23 @@ proc setConnection {conn args} {
 #           Add a new connection to the DB
 #
 # Arguments:
-#           Arguments passed to script, minus root command name
+#           nickname    Connection nickname
+#           args        Key/value pairs of command arguments
 #
 # Results:
 #           Stores a new connection in the DB
 #
-proc addConnection {args} {
+proc addConnection {nickname args} {
     # Perform sanity checks
 
     # Bail if we didn't get enough arguments
-    if {! ([llength $args] % 2)} {
+    if {([llength $args] % 2)} {
         puts stderr "Wrong number of arguments passed to script."
         exit 1
-    } elseif {([llength $args] < 3)} {
+    } elseif {([llength $args] < 2)} {
         puts stderr "You need to specify, at least, a host."
         exit 1
     }
-
-    # First arg is always the nickname
-    set nickname [lindex $args 0]
-    set params [lrange $args 1 end]
 
     # Validate nickname
     if {[regexp -- {^[0-9]}  $nickname]} {
@@ -363,7 +361,7 @@ proc addConnection {args} {
     }
 
     # Go through each argument and make sure it's valid
-    foreach {setting val} $params {
+    foreach {setting val} $args {
         if {$setting ni $validNames} {
             puts stderr "'$setting' is not a valid argument."
             exit 1
@@ -372,7 +370,7 @@ proc addConnection {args} {
 
     # Make sure a host was specified
     set flagHost 0
-    foreach {setting val} $params {
+    foreach {setting val} $args {
         if {$setting eq "-host"} {
             set flagHost 1
             break
@@ -387,9 +385,9 @@ proc addConnection {args} {
     # Okay, we can FINALLY add the host
     set settings "'nickname'"
     set values "'$nickname'"
-    foreach {setting val} $params {
+    foreach {setting val} $args {
         append settings ",'[string trimleft $setting -]'"
-        append values ",'[string trimleft $val -]'"
+        append values ",'$val'"
     }
 
     set statement "INSERT INTO 'connections' ($settings) VALUES ($values);"
