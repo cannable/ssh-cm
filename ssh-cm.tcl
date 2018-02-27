@@ -160,16 +160,37 @@ proc printConnections {} {
 
 # nicknameExists --
 #
-#           Check to see if the passed nickname exist
+#           Check to see if the passed nickname exists
 #
 # Arguments:
-#           Arguments passed to script, minus root command name
+#           nickname        Nickname to look up
 #
 # Results:
-#           Stores the new default setting in the DB
+#           returns 1 if the passed nickname exists; 0 otherwise
 #
 proc nicknameExists {nickname} {
     set r [db eval {SELECT 'id' FROM connections WHERE nickname=:nickname;}]
+
+    if {$r eq "id"} {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+
+# idExists --
+#
+#           Check to see if the passed ID exists
+#
+# Arguments:
+#           id      ID to look up
+#
+# Results:
+#           returns 1 if the passed ID exists; 0 otherwise
+#
+proc idExists {id} {
+    set r [db eval {SELECT 'id' FROM connections WHERE id=:id;}]
 
     if {$r eq "id"} {
         return 1
@@ -217,6 +238,37 @@ proc setDefault {args} {
             # Value is blank, nullify value
             db eval {UPDATE 'defaults' SET value=NULL WHERE setting=:name;}
         }
+    }
+}
+
+
+# setConnection --
+#
+#           Changes the properties of an existing connection
+#
+# Arguments:
+#           conn    Connection ID or nickname
+#
+# Results:
+#           Deletes the passed connection row from the DB
+#
+proc setConnection {conn} {
+    if {[isID $conn]} {
+        # Got an ID
+        if {! [idExists $conn]} {
+            puts stderr "Connection ID $conn does not exist."
+            exit 1
+        }
+    } elseif {[isNickname $conn]} {
+        # Got a nickname
+        if {! [nicknameExists $conn]} {
+            puts stderr "Connection nickname '$conn' does not exist."
+            exit 1
+        }
+    } else {
+        # Got something incomprehensible
+        puts stdout "Got an invalid ID or nickname"
+        exit 1
     }
 }
 
@@ -522,6 +574,7 @@ if {$argc == 0} {
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
         add         {addConnection {*}[lrange $argv 1 end]}
+        set         {setConnection {*}[lrange $argv 1 end]}
         rm          {rmConnection {*}[lrange $argv 1 end]}
         export      exportCSV
         import      importCSV
