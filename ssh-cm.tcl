@@ -169,13 +169,7 @@ proc printConnections {} {
 #           returns 1 if the passed nickname exists; 0 otherwise
 #
 proc nicknameExists {nickname} {
-    set r [db eval {SELECT 'id' FROM connections WHERE nickname=:nickname;}]
-
-    if {$r eq "id"} {
-        return 1
-    } else {
-        return 0
-    }
+    return [db exists {SELECT id FROM connections WHERE nickname=:nickname;}]
 }
 
 
@@ -190,13 +184,7 @@ proc nicknameExists {nickname} {
 #           returns 1 if the passed ID exists; 0 otherwise
 #
 proc idExists {id} {
-    set r [db eval {SELECT 'id' FROM connections WHERE id=:id;}]
-
-    if {$r eq "id"} {
-        return 1
-    } else {
-        return 0
-    }
+    return [db exists {SELECT id FROM connections WHERE id=:id;}]
 }
 
 
@@ -259,17 +247,23 @@ proc setConnection {conn} {
             puts stderr "Connection ID $conn does not exist."
             exit 1
         }
+
+        set id $conn
     } elseif {[isNickname $conn]} {
         # Got a nickname
         if {! [nicknameExists $conn]} {
             puts stderr "Connection nickname '$conn' does not exist."
             exit 1
         }
+
+        set id [db eval {SELECT id FROM connections WHERE nickname=:conn;}]
     } else {
         # Got something incomprehensible
         puts stdout "Got an invalid ID or nickname"
         exit 1
     }
+
+    puts $id
 }
 
 
