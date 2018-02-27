@@ -40,6 +40,57 @@ set schemaVer 1.0
 set createFlag 0
 
 
+# isNickname --
+#
+#           Checks to see if the passed value is a valid nickname. NOTE: This
+#           only performs string checks, it does not check the existence of a
+#           nickname.
+#
+# Arguments:
+#           subject     String to test
+#
+# Results:
+#           1 if the subject is a valid nickname; 0 otherwise
+#
+proc isNickname {subject} {
+    # Validate nickname
+    if {[regexp -- {^[0-9]} $subject]} {
+        # Nicknames may not begin with a digit
+        return 0
+    } elseif {[regexp -- {[ \t]} $subject]} {
+        # Nicknames may not contain whitespace
+        return 0
+    }
+
+    return 1
+}
+
+
+# isID --
+#
+#           Checks to see if the passed value is a ID. NOTE: This only performs
+#           string checks, it does not check the existence of a particular ID.
+#
+# Arguments:
+#           subject     String to test
+#
+# Results:
+#           1 if the subject is a valid ID; 0 otherwise
+#
+proc isID {subject} {
+    # Validate ID
+    if {! [string is integer $subject]} {
+        # ID must be an integer
+        return 0
+    } elseif {$subject <= 0} {
+        # ID must be positive and non-zero
+        return 0
+    }
+
+    return 1
+}
+
+
 # printHelp --
 #
 #           Prints help blurb
@@ -248,6 +299,20 @@ proc addConnection {args} {
 }
 
 
+# rmConnection --
+#
+#           Removes a connection from the DB
+#
+# Arguments:
+#           conn    Connection ID or nickname
+#
+# Results:
+#           Deletes the passed connection row from the DB
+#
+proc rmConnection {conn} {
+}
+
+
 # exportCSV --
 #
 #           Prints a list of connections in CSV format
@@ -438,6 +503,7 @@ if {$argc == 0} {
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
         add         {addConnection {*}[lrange $argv 1 end]}
+        rm          {rmConnection {*}[lrange $argv 1 end]}
         export      exportCSV
         import      importCSV
 
