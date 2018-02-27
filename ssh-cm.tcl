@@ -553,13 +553,11 @@ proc importCSV {} {
         if {[nicknameExists $nickname]} {
             puts "[info script] set $nickname $addArgs\; \# Alter '$nickname'"
 
-            # TODO: Enable this
-            #setConnection {*}$addArgs
+            setConnection $nickname {*}$addArgs
         } else {
             puts "[info script] add $nickname $addArgs\; \# Add '$nickname'"
 
-            # TODO: Enable this
-            #addConnection {*}$addArgs
+            addConnection $nickname {*}$addArgs
         }
     }
 
