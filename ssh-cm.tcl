@@ -339,9 +339,6 @@ proc importCSV {} {
             }
         }
 
-        puts "Trying to import:"
-        puts "\t[info script] add $addArgs"
-
         # Ensure we got a nickname
         if {$nickname eq {}} {
             echo stderr "ERROR: Nickname doesn't exist. Bailing."
@@ -349,15 +346,13 @@ proc importCSV {} {
 
         # See if nickname exists. If it does, delete it
         if {[nicknameExists $nickname]} {
-            puts "Nickname '$nickname' exists, delete it:"
+            puts "[info script] rm $nickname\; \# Remove old '$nickname'"
+
+            # TODO: Enable this
+            #rmConnection $nickname
         }
 
-
-
-        # TODO: Look for connection. Then invoke rm command.
-        # TODO: Write rm command.
-
-        #puts $addArgs
+        puts "[info script] add $addArgs\; \# Add '$nickname'"
 
         # TODO: Enable this
         #addConnection {*}$addArgs
