@@ -310,6 +310,17 @@ proc addConnection {args} {
 #           Deletes the passed connection row from the DB
 #
 proc rmConnection {conn} {
+    if {[isID $conn]} {
+        # Got an ID
+        db eval {DELETE FROM connections WHERE id=:conn;}
+    } elseif {[isNickname $conn]} {
+        # Got a nickname
+        db eval {DELETE FROM connections WHERE nickname=:conn;}
+    } else {
+        # Got something incomprehensible
+        puts stdout "Got an invalid ID or nickname"
+        exit 1
+    }
 }
 
 
