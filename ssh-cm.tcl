@@ -362,6 +362,7 @@ proc addConnection {nickname args} {
     }
 
     set validNames {
+        -id
         -nickname
         -host
         -user
@@ -372,10 +373,19 @@ proc addConnection {nickname args} {
     }
 
     # Go through each argument and make sure it's valid
+    set flagSetID 1
     foreach {setting val} $args {
         if {$setting ni $validNames} {
             puts stderr "'$setting' is not a valid argument."
             exit 1
+        }
+
+        if {[idExists $val]} {
+            # Adding connections with a particular ID is best effort.  If
+            # there's a collision, we'll still add the connection, just not at
+            # the requested ID.
+            puts stderr "WARN: Requested ID not available."
+            set flagSetID 0
         }
     }
 
@@ -397,8 +407,15 @@ proc addConnection {nickname args} {
     set settings "'nickname'"
     set values "'$nickname'"
     foreach {setting val} $args {
-        append settings ",'[string trimleft $setting -]'"
-        append values ",'$val'"
+        if {$setting eq "-id"} {
+            if {$flagSetID} {
+                append settings ",'[string trimleft $setting -]'"
+                append values ",'$val'"
+            }
+        } else {
+            append settings ",'[string trimleft $setting -]'"
+            append values ",'$val'"
+        }
     }
 
     set statement "INSERT INTO 'connections' ($settings) VALUES ($values);"
