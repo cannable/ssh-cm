@@ -149,7 +149,7 @@ proc printConnections {} {
             }
         }
         puts [format "%s. %s:\t%s@%s\t(%s)" \
-            $conn(index) \
+            $conn(id) \
             $conn(nickname) \
             $conn(user) \
             $conn(host) \
@@ -169,9 +169,9 @@ proc printConnections {} {
 #           Stores the new default setting in the DB
 #
 proc nicknameExists {nickname} {
-    set r [db eval {SELECT 'index' FROM connections WHERE nickname=:nickname;}]
+    set r [db eval {SELECT 'id' FROM connections WHERE nickname=:nickname;}]
 
-    if {$r eq "index"} {
+    if {$r eq "id"} {
         return 1
     } else {
         return 0
@@ -325,7 +325,7 @@ proc rmConnection {conn} {
 #
 proc exportCSV {} {
     set header {
-        index
+        id
         nickname
         host
         user
@@ -363,7 +363,7 @@ proc exportCSV {} {
 # Results:
 #           Imports connections into the DB, clobbering any existing
 #           connections with conflicting nicknames. NOTE: If the CSV input
-#           contains an index field, it'll be ignored.
+#           contains an id field, it'll be ignored.
 #
 proc importCSV {} {
     # Read the first line to ensure we have a header
@@ -386,7 +386,7 @@ proc importCSV {} {
         # Assemble connection add args
         set counter -1
         foreach col $columns {
-            if {$col eq "index"} {
+            if {$col eq "id"} {
                 incr counter
             } else {
                 set value [lindex $row [incr counter]]
@@ -453,7 +453,7 @@ if {$createFlag} {
             PRIMARY KEY('setting')
         );
         CREATE TABLE 'connections' (
-            'index'         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            'id'         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             'nickname'      TEXT NOT NULL UNIQUE,
             'host'          TEXT NOT NULL,
             'user'          TEXT,
