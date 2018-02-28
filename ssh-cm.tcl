@@ -564,6 +564,129 @@ proc importCSV {} {
 }
 
 
+# getConnection --
+#
+#           Merges OS, application default, and connection settings
+#
+# Arguments:
+#           id      Connection ID
+#
+# Results:
+#           Returns a list of connection info
+#
+proc getConnection {id} {
+    # Pass 0: Hard-Coded, Ugly, Defaults
+
+    array set c {
+        binary      /bin/sh
+        user        {}
+        args        {}
+        identity    {}
+        command     {}
+    }
+
+    # Pass 1: System Default Values
+    # The default user is the one running this script
+    if {"USER" in [array names ::env]} {
+        array set c [list user $::env(USER)]
+    }
+
+    # Find SSH
+    #set c(binary) /bin/ssh
+    set binPath [exec -- which ssh]
+
+    # Make sure we got a sane path for SSH
+    if {[file exists $binPath] && [file isfile $binPath]} {
+        set c(binary) $binPath
+    }
+
+    # Pass 2: Application Default Values
+    db eval {SELECT * FROM defaults;} defaults {
+        array set defs [array get defaults]
+    }
+
+    # Skip null values
+    foreach setting [array names defs] {
+        if {[string length $defs($setting)]} {
+            set c($setting) $defs($setting)
+        }
+    }
+
+    # Now we need the connection info from the DB
+    db eval {SELECT * FROM connections WHERE id=:id;} data {
+        array set cfg [array get data]
+    }
+
+    # Pass 3: Connection Values
+
+    # Merge the data (we are stripping out null values here)
+    foreach setting [array names cfg] {
+        if {[string length $cfg($setting)]} {
+            set c($setting) $cfg($setting)
+        }
+    }
+
+    return [array get c]
+}
+
+
+# connect --
+#
+#           Assembles a command line string for the requested connection, then
+#           executes
+#
+# Arguments:
+#           conn    Either an ID or a nickname
+#
+# Results:
+#           Starts SSH client with appropriate arguments
+#
+proc connect {conn} {
+    # Now we need the connection info from the DB
+    # Figure out if we got a nickname or ID
+    if {[isID $conn]} {
+        # Got an ID
+        if {! [idExists $conn]} {
+            puts stderr "Connection ID $conn does not exist."
+            exit 1
+        }
+
+        set id $conn
+    } elseif {[isNickname $conn]} {
+        # Got a nickname
+        if {! [nicknameExists $conn]} {
+            puts stderr "Connection nickname '$conn' does not exist."
+            exit 1
+        }
+
+        set id [db eval {SELECT id FROM connections WHERE nickname=:conn;}]
+    } else {
+        # Got something incomprehensible
+        puts stdout "Got an invalid ID or nickname"
+        exit 1
+    }
+
+    array set c [getConnection $id]
+
+    # From here on down, c is an array that contains our connection info
+
+    # OpenSSH
+    set command "$c(binary)"
+
+    if {[string length $c(args)]} {
+        append command " $c(args)"
+    }
+
+    if {[string length $c(identity)]} {
+        append command " $c(identity)"
+    }
+
+    append command [format { %s@%s} $c(user) $c(host)]
+
+    puts $command
+}
+
+
 # ------------------------------------------------------------------------------
 # Main
 
@@ -637,6 +760,7 @@ if {$argc == 0} {
     printHelp
 } else {
     switch -- [lindex $argv 0] {
+        connect     {connect {*}[lindex $argv 1]}
         defaults    printDefaults
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
