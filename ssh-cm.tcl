@@ -136,25 +136,16 @@ proc printDefaults {} {
 #
 proc printConnections {} {
     puts Connections
-    db eval {SELECT * FROM connections;} conn {
-        if {$conn(user) eq ""} {
-            set defUser [db eval {
-                SELECT value FROM defaults WHERE setting = 'user'
-            }]
-
-            if {$defUser eq "\{\}"} {
-                set conn(user) {}
-            } else {
-                set conn(user) $defUser
-            }
-        }
+    db eval {SELECT id FROM connections;} conn {
+        array set c [getConnection $conn(id)]
+        #parray c
         puts [format "%s. %s:\t%s@%s\t(%s)" \
-            $conn(id) \
-            $conn(nickname) \
-            $conn(user) \
-            $conn(host) \
-            $conn(description)]
-    }
+            $c(id) \
+            $c(nickname) \
+            $c(user) \
+            $c(host) \
+            $c(description)]
+   }
 }
 
 
@@ -577,12 +568,18 @@ proc importCSV {} {
 proc getConnection {id} {
     # Pass 0: Hard-Coded, Ugly, Defaults
 
+    # Don't change these
     array set c {
         binary      /bin/sh
-        user        {}
         args        {}
-        identity    {}
         command     {}
+        description {}
+        host        {}
+        id          {}
+        identity    {}
+        nickname    {}
+        setting     {}
+        user        {}
     }
 
     # Pass 1: System Default Values
@@ -592,7 +589,6 @@ proc getConnection {id} {
     }
 
     # Find SSH
-    #set c(binary) /bin/ssh
     set binPath [exec -- which ssh]
 
     # Make sure we got a sane path for SSH
@@ -601,30 +597,25 @@ proc getConnection {id} {
     }
 
     # Pass 2: Application Default Values
-    db eval {SELECT * FROM defaults;} defaults {
-        array set defs [array get defaults]
-    }
-
-    # Skip null values
-    foreach setting [array names defs] {
-        if {[string length $defs($setting)]} {
-            set c($setting) $defs($setting)
+    db eval {SELECT setting,value FROM defaults;} defs {
+        # Skip null values
+        if {[string length $defs(value)]} {
+            set c($defs(setting)) $defs(value)
         }
     }
 
+
     # Now we need the connection info from the DB
-    db eval {SELECT * FROM connections WHERE id=:id;} data {
-        array set cfg [array get data]
+    db eval {SELECT * FROM connections WHERE id=:id;} cfg {
+        # Merge the data (we are stripping out null values here)
+        foreach setting [array names cfg] {
+            if {[string length $cfg($setting)]} {
+                set c($setting) $cfg($setting)
+            }
+        }
     }
 
     # Pass 3: Connection Values
-
-    # Merge the data (we are stripping out null values here)
-    foreach setting [array names cfg] {
-        if {[string length $cfg($setting)]} {
-            set c($setting) $cfg($setting)
-        }
-    }
 
     return [array get c]
 }
