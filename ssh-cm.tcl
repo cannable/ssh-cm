@@ -216,6 +216,35 @@ proc printHelp {args} {
 
             return
         }
+
+        rm {
+            puts "Remove a connection. You can remove by nickname or ID:"
+            puts "\t\tssh-cm.tcl rm 'nickname'"
+            puts "\t\tssh-cm.tcl rm id"
+            return
+        }
+
+        connect {
+            puts "Start a connection. You can start by nickname or ID:"
+            puts "\t\tssh-cm.tcl connect 'nickname'"
+            puts "\t\tssh-cm.tcl connect id"
+            return
+        }
+
+        export {
+            puts "Exports all connections as CSV to stdout."
+            return
+        }
+
+        import {
+            puts "Imports connections from stdin."
+            puts "NOTE: Take a look at the export format to see what columns"
+            puts "      are supported. In general, this should 'figure out'"
+            puts "      the columns you're importing, so you shouldn't have to"
+            puts "      have them in any particular order, but it may not be"
+            puts "      perfect."
+            return
+        }
     }
  
     # Assume that the user either passed an invalid subcommand name or nothing
