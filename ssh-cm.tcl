@@ -96,13 +96,150 @@ proc isID {subject} {
 #           Prints help blurb
 #
 # Arguments:
-#           none
+#           args    Optional: a subcommand for which to show detailed help info.
 #
 # Results:
 #           Prints the help text to stdout
 #
-proc printHelp {} {
-    puts 2018-02-17
+proc printHelp {args} {
+
+    switch -- [lindex $args 0] {
+        help {
+            puts "Print help. Pass a subcommand for more topical help."
+            return
+        }
+
+        defaults {
+            puts "Print the default settings for connections."
+            return
+        }
+
+        list {
+            puts "List all connections in the DB."
+            puts -nonewline "NOTE: If you have a LOT of connections, "
+            puts "this could get unpleasant. Fast."
+            return
+        }
+
+        add {
+            puts "Add a connection. An example:\n"
+            puts "\t\tssh-cm.tcl add home -host 127.0.0.1 -user me\n"
+            puts "The following options are required when adding a connection:"
+            puts {
+                'nickname'  Nickname for the connection.
+                            * The first character must be a letter or symbol.
+                            * Numbers are allowed, just as the first character.
+                            * No spaces.
+
+                -host       Host name or IP address of target system.
+                            NOTE: This script does no validation of host names.
+                                  In other words, whatever is set here will be
+                                  passed to SSH verbatim.
+            }
+
+            puts "The following options are optional:"
+            puts "\n(NOTE: Null values will inherit the default value.)"
+            puts {
+                -user       Target user name
+                            * Like host names, no validation is done on this
+                            * If you don't specify a user, the connection
+                              default value will be used.
+                            * If you don't specify a connection default user
+                              either, the name of the current user running this
+                              script will be used.
+
+                -args       Any additional arguments you want to pass to SSH.
+
+                -description
+
+                -identity   Path to an identity file. Again, no validation.
+
+                -id         You can request a particular ID number. This is the
+                            row ID in the database. In the event of a conflict,
+                            this script will let sqlite decide what ID it gets.
+            }
+        }
+
+        set {
+            puts "Alter an existing connection. Some examples:\n"
+            puts "\t\tssh-cm.tcl set 'nickname' -nickname 'another_nick'"
+            puts "\t\tssh-cm.tcl set id -command tmux\n"
+            puts "You must identify the connection you want to alter."
+            puts "To do so, you have two options:"
+
+            puts {
+                'nickname'  Nickname for the connection.
+
+                -or-
+
+                id          Connection ID number. This is the DB row.
+            }
+
+            puts "The following options can be set (or unset):"
+            puts "\n(NOTE: Null values will inherit the default value.)"
+            puts {
+                -host       Host name or IP address of target system.
+                            NOTE: This script does no validation of host names.
+                                  In other words, whatever is set here will be
+                                  passed to SSH verbatim.
+
+                -user       Target user name
+                            * Like host names, no validation is done on this
+                            * If you don't specify a user, the connection
+                              default value will be used.
+                            * If you don't specify a connection default user
+                              either, the name of the current user running this
+                              script will be used.
+
+                -nickname   Nickname for the connection.
+                            * The first character must be a letter or symbol.
+                            * Numbers are allowed, just as the first character.
+                            * No spaces.
+
+                -args       Any additional arguments you want to pass to SSH.
+
+                -description
+
+                -identity   Path to an identity file. Again, no validation.
+
+                -id         You can request a particular ID number. This is the
+                            row ID in the database. In the event of a conflict,
+                            the ID will not be changed.
+            }
+            puts "To unset any of these options, set the value to null string."
+            puts "Ex. You want to remove the custom user name from connection 7"
+            puts "    and just use the connection default name (as set by def)."
+
+            puts "\n\t\tssh-cm.tcl set 7 -user ''"
+
+            puts "Any null string will set the DB column to a proper NULL."
+
+            return
+        }
+    }
+ 
+    # Assume that the user either passed an invalid subcommand name or nothing
+    puts "SSH Connection Manager"
+    puts "Written completely in Tcl by CANNABLE."
+
+    puts "\nHere are the commands you can use:"
+    puts {
+        ssh-cm.tcl help
+        ssh-cm.tcl defaults
+        ssh-cm.tcl list
+        ssh-cm.tcl def -user root -identity ~/.ssh/id_rsa
+        ssh-cm.tcl add 'nickname' -host 127.0.0.1 -user me
+        ssh-cm.tcl set 'nickname' -nickname 'another_nick'
+        ssh-cm.tcl set id -command tmux
+        ssh-cm.tcl rm 'nickname'
+        ssh-cm.tcl rm id
+        [COMING SOON] ssh-cm.tcl search -host 127.0.0.1
+        [COMING SOON] ssh-cm.tcl search "nickname or description fragment"
+        ssh-cm.tcl connect nickname
+        ssh-cm.tcl connect id
+        ssh-cm.tcl export
+        ssh-cm.tcl import
+    }
 }
 
 
@@ -760,6 +897,7 @@ if {$argc == 0} {
         rm          {rmConnection {*}[lrange $argv 1 end]}
         export      exportCSV
         import      importCSV
+        help        {printHelp {*}[lindex $argv 1]}
 
         default {
             puts stderr "Eh?"
