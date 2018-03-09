@@ -669,12 +669,12 @@ proc connect {conn} {
     }
 
     if {[string length $c(identity)]} {
-        append command " $c(identity)"
+        append command " -i $c(identity)"
     }
 
     append command [format { %s@%s} $c(user) $c(host)]
 
-    puts $command
+    catch {exec -- {*}$command <@stdin >@stdout 2>@stderr}
 }
 
 
