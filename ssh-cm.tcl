@@ -61,7 +61,6 @@ proc getDBPath {} {
     # Try to locate an existing DB
     foreach path $toCheck {
         if {[file exist $path]} {
-            puts "$path exists."
             return $path
         }
     }
@@ -760,7 +759,7 @@ proc importCSV {} {
 
         # Ensure we got a nickname
         if {$nickname eq {}} {
-            echo stderr "ERROR: Nickname doesn't exist. Bailing."
+            puts stderr "ERROR: Nickname doesn't exist. Bailing."
         }
 
         # See if nickname exists. If it does, we'll do a set vs. add
