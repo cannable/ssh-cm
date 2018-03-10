@@ -245,6 +245,24 @@ proc printHelp {args} {
             puts "      perfect."
             return
         }
+
+        search {
+            puts "Search the DB for connections matching your query."
+            puts "There are two search syntaxes available:"
+            puts "  1. Generic search - pass a single argument"
+            puts "     This is the simplest search to perform. This type of"
+            puts "     search will retrieve connections containing your search"
+            puts "     string in the user, host, nickname, and description"
+            puts "      fields. Example:\n"
+            puts "          sh-cm.tcl search 'something'\n"
+            puts "  2. Specific search - pass multiple arguments"
+            puts "     You can search specific columns using this method. The"
+            puts "     syntax is the same as the add and set functions."
+            puts "     Example:\n"
+            puts "          sh-cm.tcl search -host 127.0.0.1\n"
+            return
+        }
+
     }
  
     # Assume that the user either passed an invalid subcommand name or nothing
@@ -253,21 +271,21 @@ proc printHelp {args} {
 
     puts "\nHere are the commands you can use:"
     puts {
-        ssh-cm.tcl help
-        ssh-cm.tcl defaults
-        ssh-cm.tcl list
-        ssh-cm.tcl def -user root -identity ~/.ssh/id_rsa
         ssh-cm.tcl add 'nickname' -host 127.0.0.1 -user me
-        ssh-cm.tcl set 'nickname' -nickname 'another_nick'
-        ssh-cm.tcl set id -command tmux
+        ssh-cm.tcl connect id
+        ssh-cm.tcl connect nickname
+        ssh-cm.tcl def -user root -identity ~/.ssh/id_rsa
+        ssh-cm.tcl defaults
+        ssh-cm.tcl export
+        ssh-cm.tcl help
+        ssh-cm.tcl import
+        ssh-cm.tcl list
         ssh-cm.tcl rm 'nickname'
         ssh-cm.tcl rm id
-        [COMING SOON] ssh-cm.tcl search -host 127.0.0.1
-        [COMING SOON] ssh-cm.tcl search "nickname or description fragment"
-        ssh-cm.tcl connect nickname
-        ssh-cm.tcl connect id
-        ssh-cm.tcl export
-        ssh-cm.tcl import
+        ssh-cm.tcl search 'something'
+        ssh-cm.tcl search -host 127.0.0.1
+        ssh-cm.tcl set 'nickname' -nickname 'another_nick'
+        ssh-cm.tcl set id -command tmux
     }
 }
 
