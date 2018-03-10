@@ -34,10 +34,41 @@
 package require sqlite3
 package require csv
 
-set scriptDir [file dirname [info script]]
-set dbPath [file join $scriptDir {data.sqlite3}]
+# ------------------------------------------------------------------------------
+# Default Settings
+
+# Don't change these unless you know what you're doing.
 set schemaVer 1.0
 set createFlag 0
+
+
+# getDBPath --
+#
+#           Attempts to locate the path to the DB file
+#
+# Arguments:
+#           None
+#
+# Results:
+#           Returns path to the DB file
+#
+proc getDBPath {} {
+    set dbName {ssh-cm.connections}
+
+    set toCheck [list [file join ~ .config $dbName]]
+    lappend toCheck [file join [file dirname [info script]] $dbName]
+
+    # Try to locate an existing DB
+    foreach path $toCheck {
+        if {[file exist $path]} {
+            puts "$path exists."
+            return $path
+        }
+    }
+
+    # Since we couldn't locate a DB, return the preferred path for creation
+    return [list [file join ~ .config $dbName]]
+}
 
 
 # isNickname --
@@ -948,6 +979,7 @@ proc search {args} {
 # ------------------------------------------------------------------------------
 # Main
 
+set dbPath [getDBPath]
 
 if {![file exists $dbPath]} {
     set createFlag 1
