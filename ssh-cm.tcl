@@ -869,11 +869,43 @@ proc search {args} {
         append query " OR (user LIKE '%$args%')"
         append query " OR (description LIKE '%$args%')"
         append query " ORDER BY id;"
-
+    } elseif {([llength $args] % 2)} {
+        puts stderr "Wrong number of arguments passed to script."
+        exit 1
     } else {
+        set validNames {
+            -id
+            -nickname
+            -host
+            -user
+            -description
+            -args
+            -identity
+            -command
+        }
 
+        set query "SELECT id FROM connections WHERE"
+        # Go through each argument and, if it's valid, add it to the query
+        set flagFirstRun 1
+        foreach {setting val} $args {
+            if {$setting ni $validNames} {
+                puts stderr "'$setting' is not a valid argument."
+                exit 1
+            }
+
+            if {$flagFirstRun} {
+                set flagFirstRun 0
+                append query " ([string trimleft $setting -] LIKE '%$val%')"
+            } else {
+                append query " AND ([string trimleft $setting -] LIKE '%$val%')"
+            }
+
+        }
+
+        append query " ORDER BY id;"
     }
 
+    # Perform search
     db eval $query conn {
         array set c [getConnection $conn(id)]
         #parray c
