@@ -844,6 +844,49 @@ proc connect {conn} {
 }
 
 
+# search --
+#
+#           Searches for connections based on user input.
+#
+# Arguments:
+#           args    Search arguments. Can be two types of search:
+#                       * Single argument: searches varous fields for pattern
+#                       * Multiple args: specific parameters were passed
+#
+# Results:
+#           Starts SSH client with appropriate arguments
+#
+proc search {args} {
+    set query ""
+
+    if {! [llength $args]} {
+        printHelp
+        exit
+    } elseif {[llength $args] == 1} {
+        # Single search argument passed, perform general search
+        set query "SELECT id FROM connections WHERE (nickname LIKE '%$args%')"
+        append query " OR (host LIKE '%$args%')"
+        append query " OR (user LIKE '%$args%')"
+        append query " OR (description LIKE '%$args%')"
+        append query " ORDER BY id;"
+
+    } else {
+
+    }
+
+    db eval $query conn {
+        array set c [getConnection $conn(id)]
+        #parray c
+        puts [format "%s. %s:\t%s@%s\t(%s)" \
+            $c(id) \
+            $c(nickname) \
+            $c(user) \
+            $c(host) \
+            $c(description)]
+   }
+}
+
+
 # ------------------------------------------------------------------------------
 # Main
 
@@ -926,6 +969,7 @@ if {$argc == 0} {
         rm          {rmConnection {*}[lrange $argv 1 end]}
         export      exportCSV
         import      importCSV
+        search      {search {*}[lrange $argv 1 end]}
         help        {printHelp {*}[lindex $argv 1]}
 
         default {
