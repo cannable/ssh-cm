@@ -158,6 +158,14 @@ proc printHelp {args} {
                             row ID in the database. In the event of a conflict,
                             this script will let sqlite decide what ID it gets.
             }
+
+            return
+        }
+
+        def {
+            puts "Set default connection settings. Ex.\n"
+            puts "\tssh-cm.tcl def -user root -identity ~/.ssh/id_rsa\n"
+            return
         }
 
         set {
