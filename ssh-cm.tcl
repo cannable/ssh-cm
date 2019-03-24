@@ -39,7 +39,6 @@ package require csv
 
 # Don't change these unless you know what you're doing.
 set schemaVer 1.0
-set createFlag 0
 
 
 # getDBPath --
@@ -981,13 +980,20 @@ proc search {args} {
 set dbPath [getDBPath]
 
 if {![file exists $dbPath]} {
-    set createFlag 1
-}
-
-sqlite3 db $dbPath -create 1
-
-if {$createFlag} {
     puts "Didn't find a connections database, so creating a new one."
+
+    set dbDir [file dirname $dbPath]
+
+    # Do some sanity checks on the dbDir
+    if {![file exists $dbPath]} {
+        puts "Creating $dbDir."
+        file mkdir $dbDir
+    }
+
+    # Create file
+    if {[catch {sqlite3 db $dbPath -create 1}]} {
+        error "Can't create DB file"
+    }
 
     # Create the appropriate tables
     db eval {
@@ -1026,6 +1032,9 @@ if {$createFlag} {
     }
 
 } else {
+    # Open connections DB
+    sqlite3 db $dbPath -create 1
+
     # See if we need to update the schema
     # Right now, since there is only one version, perform a sanity check
 
