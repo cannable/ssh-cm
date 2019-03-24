@@ -93,9 +93,24 @@ id,nickname,host,user,description,args,identity,command
 
 `ssh-cm.tcl import`
 
-Imports connections from stdin. The format is the same as the export function.
-If you're importing from another tool, technically speaking, you don't have to
-have the columns in the same exact order.
+Imports connections from stdin. Supported columns:
+
+```
+id,nickname,host,user,description,args,identity,command
+```
+
+The nickname and host columns are mandatory. All other columns are optional,
+including the id field. If you don't include an id, the id will be generated
+on-the-fly and autoincrement. Connections will be imported in same order that
+they are in the input stream.
+
+Also note that the columns need not be in the exact order as listed above. This
+was done so as to make importing from other tools a little less annoying.
+
+The import process can be picky at times. It should mostly work, but may bail
+on some lines. If this happens, look for extra quotation marks, apostrophes, or
+commas in the line.  Apostrophes in the description field tend to be a common
+issue, and escaping characters gets somewhat silly.
 
 ## List Connections
 

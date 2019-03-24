@@ -269,17 +269,33 @@ proc printHelp {args} {
         }
 
         export {
-            puts "Exports all connections as CSV to stdout."
+            puts "Exports all connections as CSV to stdout, in this format:\n"
+            puts "id,nickname,host,user,description,args,identity,command"
+            puts "1,tank,bsdbox,notroot,,,,"
+            puts "2,asdf,linux,,,,,\n"
             return
         }
 
         import {
-            puts "Imports connections from stdin."
-            puts "NOTE: Take a look at the export format to see what columns"
-            puts "      are supported. In general, this should 'figure out'"
-            puts "      the columns you're importing, so you shouldn't have to"
-            puts "      have them in any particular order, but it may not be"
-            puts "      perfect."
+            puts "Imports connections from stdin. Supported columns:\n"
+            puts "id,nickname,host,user,description,args,identity,command"
+
+            puts "\nThe nickname and host columns are mandatory. All other"
+            puts "columns are optional, including the id field. If you don't"
+            puts "include an id, the id will be generated on-the-fly and"
+            puts "autoincrement. Connections will be imported in same order"
+            puts "that they are in the input stream.\n"
+
+            puts "Also note that the columns need not be in the exact order as"
+            puts "listed above. This was done so as to make importing from"
+            puts "other tools a little less annoying.\n"
+
+            puts "The import process can be picky at times. It should mostly"
+            puts "work, but may bail on some lines. If this happens, look for"
+            puts "extra quotation marks, apostrophes, or commas in the line."
+            puts "Apostrophes in the description field tend to be a common"
+            puts "issue, and escaping characters gets somewhat silly."
+
             return
         }
 
