@@ -3,9 +3,14 @@ A simple SSH connection manager written completely in Tcl.
 
 # Prerequisites
 
-* Tcl. This was developed and tested on 8.6.8, but should work on older builds
-* sqlite3
+* Tcl. This was developed and tested on 8.6.8, but should work on older builds. Tclkits work pretty well.
+* sqlite3 (probably built-in)
+* platform (also probably built-in)
 * csv (from tcllib)
+
+## Windows
+
+To make this work on Windows, you will need a recent-ish build of Win10 or Server 2019 and the OpenSSH Client feature installed.
 
 # Usage
 
