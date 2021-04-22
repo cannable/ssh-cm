@@ -4,7 +4,7 @@
 #
 #     SSH Connection Manager
 # 
-# Copyright 2018 C. Annable
+# Copyright 2021 C. Annable
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,8 @@
 
 package require sqlite3
 package require csv
+
+package provide app-ssh-cm 1.0
 
 # ------------------------------------------------------------------------------
 # Default Settings
