@@ -847,19 +847,6 @@ proc getConnection {id} {
         array set c [list user $::env(USER)]
     }
 
-    # Windows support requires a recent build of Win10 and the OpenSSH feature installed
-    if {[string match "win32-*" [platform::identify]]} {
-        set c(binary) ssh
-    } else {
-        # Find SSH
-        set binPath [exec -- which ssh]
-
-        # Make sure we got a sane path for SSH
-        if {[file exists $binPath] && [file isfile $binPath]} {
-            set c(binary) $binPath
-        }
-    }
-
     # Pass 2: Application Default Values
     db eval {SELECT setting,value FROM defaults;} defs {
         # Skip null values
