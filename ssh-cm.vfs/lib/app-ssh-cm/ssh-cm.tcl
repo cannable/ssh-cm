@@ -44,7 +44,7 @@ package provide app-ssh-cm 1.0
 set schemaVer 1.0
 
 array set connectionDefaults {
-        binary      /bin/ssh
+        binary      ssh
         args        {}
         command     {}
         description {}
@@ -1059,14 +1059,16 @@ if {![file exists $dbPath]} {
             'description'   TEXT,
             'args'          TEXT,
             'identity'      TEXT,
-            'command'       TEXT
+            'command'       TEXT,
+            'binary'        TEXT
         );
-        INSERT INTO 'global' (setting,value) VALUES ('schema_version','1.0');
+        INSERT INTO 'global' (setting,value) VALUES ('schema_version','1.1');
         COMMIT;
     }
 
     db eval {
         BEGIN TRANSACTION;
+        INSERT INTO 'defaults' (setting,value) VALUES ('binary',NULL);
         INSERT INTO 'defaults' (setting,value) VALUES ('user',NULL);
         INSERT INTO 'defaults' (setting,value) VALUES ('args',NULL);
         INSERT INTO 'defaults' (setting,value) VALUES ('identity',NULL);
