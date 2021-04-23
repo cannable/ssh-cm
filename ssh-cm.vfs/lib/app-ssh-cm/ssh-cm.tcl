@@ -369,9 +369,19 @@ proc printHelp {args} {
 #           Prints the default settings to stdout
 #
 proc printDefaults {} {
-    puts Defaults
-    db eval {SELECT * FROM defaults;} defaults {
+    puts "Configured Defaults (DB)"
+    db eval {SELECT * FROM defaults ORDER BY setting;} defaults {
         puts [format {    %s: '%s'} $defaults(setting) $defaults(value)]
+    }
+
+    puts "\nApp Defaults (Hard-Coded)"
+
+    foreach key [lsort [array names ::connectionDefaults]] {
+
+        # Don't print connection settings which'd be obtained from the DB
+        if {[lsearch {description id host setting nickname id} $key] < 0} {
+            puts [format "    %s: '%s'" $key $::connectionDefaults($key)]
+        }
     }
 }
 
