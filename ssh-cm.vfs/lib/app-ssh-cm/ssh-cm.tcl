@@ -37,12 +37,16 @@ package require platform
 
 package provide app-ssh-cm 1.0
 
+
 # ------------------------------------------------------------------------------
 # Default Settings
 
 # Don't change these unless you know what you're doing.
 set schemaVer 1.1
 
+# These are fallback settings and setting anything here probably won't do
+# anything. Connection and app defaults are stored in the DB and that's the
+# better place to tweak things.
 array set connectionDefaults {
         binary      ssh
         args        {}
@@ -1067,9 +1071,6 @@ if {![file exists $dbPath]} {
     # Open connections DB
     sqlite3 db $dbPath -create 1
 
-    # See if we need to update the schema
-    # Right now, since there is only one version, perform a sanity check
-
     # Attempt to read the schema version
     set v [db eval {SELECT value FROM global WHERE setting = 'schema_version'}]
 
@@ -1143,4 +1144,3 @@ if {$argc == 0} {
 }
 
 db close
-
