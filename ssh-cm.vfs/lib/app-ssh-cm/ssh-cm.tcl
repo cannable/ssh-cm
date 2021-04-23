@@ -41,7 +41,7 @@ package provide app-ssh-cm 1.0
 # Default Settings
 
 # Don't change these unless you know what you're doing.
-set schemaVer 1.0
+set schemaVer 1.1
 
 array set connectionDefaults {
         binary      ssh
@@ -1091,8 +1091,39 @@ if {![file exists $dbPath]} {
         exit 1
     }
 
-    if {$v != $schemaVer} {
+    if {$v > $schemaVer} {
+        puts "This tool is too old to use this new DB file."
+        puts "Please update."
+        puts "\nSchema:"
+        puts "\tTool: $schemaVer"
+        puts "\tFile: $v"
+        exit 1
+    }
+
+    if {$v < $schemaVer} {
         puts "Schema upgrade required."
+        puts "\nSchema:"
+        puts "\tTool: $schemaVer"
+        puts "\tFile: $v\n"
+
+        # Each if statement will perform an upgrade between versions
+        if {$v == 1.0} {
+            puts "Upgrading v1.0 schema to v1.1..."
+
+            db eval {
+                BEGIN TRANSACTION;
+                ALTER TABLE 'connections' ADD COLUMN 'binary' TEXT;
+                INSERT INTO 'defaults' (setting,value) VALUES ('binary',NULL);
+                UPDATE 'global' SET value='1.1' WHERE setting='schema_version';
+                COMMIT;
+            }
+
+            set v "1.1"
+
+            puts "Complete.\n"
+        }
+
+        # Future: next if statement will upgrade to 1.2
     }
 }
 
