@@ -156,16 +156,20 @@ This is the simplest search to perform. This type of search will retrieve
 connections containing your search string in the user, host, nickname, and
 description fields. Example:
 
-`sh-cm.tcl search 'something'`
-`sh-cm.tcl s 'something'`
+```
+sh-cm.tcl search 'something'
+sh-cm.tcl s 'something'
+```
 
 ### Specific Search
 
 You can search specific columns using this method. The syntax is the same as
 the add and set functions.  Example:
 
-`sh-cm.tcl search -host 127.0.0.1`
-`sh-cm.tcl s -host 127.0.0.1`
+```
+sh-cm.tcl search -host 127.0.0.1
+sh-cm.tcl s -host 127.0.0.1
+```
 
 ## Alter Existing Connection
 ```
