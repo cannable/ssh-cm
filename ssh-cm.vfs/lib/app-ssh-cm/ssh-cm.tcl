@@ -43,6 +43,18 @@ package provide app-ssh-cm 1.0
 # Don't change these unless you know what you're doing.
 set schemaVer 1.0
 
+array set connectionDefaults {
+        binary      /bin/ssh
+        args        {}
+        command     {}
+        description {}
+        host        {}
+        id          {}
+        identity    {}
+        nickname    {}
+        setting     {}
+        user        {}
+}
 
 # getDBPath --
 #
@@ -807,20 +819,7 @@ proc importCSV {} {
 #
 proc getConnection {id} {
     # Pass 0: Hard-Coded, Ugly, Defaults
-
-    # Don't change these
-    array set c {
-        binary      /bin/sh
-        args        {}
-        command     {}
-        description {}
-        host        {}
-        id          {}
-        identity    {}
-        nickname    {}
-        setting     {}
-        user        {}
-    }
+    array set c [array get ::connectionDefaults]
 
     # Pass 1: System Default Values
     # The default user is the one running this script
