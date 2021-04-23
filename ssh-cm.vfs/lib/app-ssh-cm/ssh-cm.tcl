@@ -280,6 +280,9 @@ proc printHelp {args} {
             puts "Start a connection. You can start by nickname or ID:"
             puts "\t\tssh-cm.tcl connect 'nickname'"
             puts "\t\tssh-cm.tcl connect id"
+            puts "\nYou can also connect using the short form (c):"
+            puts "\t\tssh-cm.tcl c 'nickname'"
+            puts "\t\tssh-cm.tcl c id"
             return
         }
 
@@ -316,18 +319,21 @@ proc printHelp {args} {
 
         search {
             puts "Search the DB for connections matching your query."
+            puts "Also, you can shorten the 'search' command to just 's'."
             puts "There are two search syntaxes available:"
             puts "  1. Generic search - pass a single argument"
             puts "     This is the simplest search to perform. This type of"
             puts "     search will retrieve connections containing your search"
             puts "     string in the user, host, nickname, and description"
             puts "      fields. Example:\n"
-            puts "          sh-cm.tcl search 'something'\n"
+            puts "          sh-cm.tcl search 'something'"
+            puts "          sh-cm.tcl s 'something'\n"
             puts "  2. Specific search - pass multiple arguments"
             puts "     You can search specific columns using this method. The"
             puts "     syntax is the same as the add and set functions."
             puts "     Example:\n"
-            puts "          sh-cm.tcl search -host 127.0.0.1\n"
+            puts "          sh-cm.tcl search -host 127.0.0.1"
+            puts "          sh-cm.tcl s -host 127.0.0.1\n"
             return
         }
 
@@ -342,6 +348,8 @@ proc printHelp {args} {
         ssh-cm.tcl add 'nickname' -host 127.0.0.1 -user me
         ssh-cm.tcl connect id
         ssh-cm.tcl connect nickname
+        ssh-cm.tcl c id
+        ssh-cm.tcl c nickname
         ssh-cm.tcl def -user root -identity ~/.ssh/id_rsa
         ssh-cm.tcl defaults
         ssh-cm.tcl export
@@ -352,6 +360,8 @@ proc printHelp {args} {
         ssh-cm.tcl rm id
         ssh-cm.tcl search 'something'
         ssh-cm.tcl search -host 127.0.0.1
+        ssh-cm.tcl s 'my sanity'
+        ssh-cm.tcl s -host 127.0.0.2
         ssh-cm.tcl set 'nickname' -nickname 'another_nick'
         ssh-cm.tcl set id -command tmux
     }
@@ -1092,6 +1102,7 @@ if {$argc == 0} {
 } else {
     switch -- [lindex $argv 0] {
         connect     {connect {*}[lindex $argv 1]}
+        c           {connect {*}[lindex $argv 1]}
         defaults    printDefaults
         list        printConnections
         def         {setDefault {*}[lrange $argv 1 end]}
@@ -1101,6 +1112,7 @@ if {$argc == 0} {
         export      exportCSV
         import      importCSV
         search      {search {*}[lrange $argv 1 end]}
+        s           {search {*}[lrange $argv 1 end]}
         help        {printHelp {*}[lindex $argv 1]}
 
         default {

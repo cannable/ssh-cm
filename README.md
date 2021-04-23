@@ -19,6 +19,8 @@ Here are the commands you can use:
 ssh-cm.tcl add 'nickname' -host 127.0.0.1 -user me
 ssh-cm.tcl connect id
 ssh-cm.tcl connect nickname
+ssh-cm.tcl c id
+ssh-cm.tcl c nickname
 ssh-cm.tcl def -user root -identity ~/.ssh/id_rsa
 ssh-cm.tcl defaults
 ssh-cm.tcl export
@@ -29,6 +31,8 @@ ssh-cm.tcl rm 'nickname'
 ssh-cm.tcl rm id
 ssh-cm.tcl search 'something'
 ssh-cm.tcl search -host 127.0.0.1
+ssh-cm.tcl s 'my sanity'
+ssh-cm.tcl s -host 127.0.0.2
 ssh-cm.tcl set 'nickname' -nickname 'another_nick'
 ssh-cm.tcl set id -command tmux
 ```
@@ -67,11 +71,13 @@ The following options are optional:
 
 ## Connect
 
-Start a connection. You can start by nickname or ID:
+Start a connection. You can start by nickname or ID, and you can shorten 'connect' to just 'c':
 
 ```
 ssh-cm.tcl connect 'nickname'
 ssh-cm.tcl connect id
+ssh-cm.tcl c 'nickname'
+ssh-cm.tcl c id
 ```
 
 ## Set Default Connection Options
@@ -135,6 +141,10 @@ ssh-cm.tcl rm id
 ## Search
 
 Search the DB for connections matching your query.
+
+You can shorten 'search' to just 's'.
+
+
 There are two search syntaxes available:
 
 1. Generic search - pass a single argument
@@ -147,6 +157,7 @@ connections containing your search string in the user, host, nickname, and
 description fields. Example:
 
 `sh-cm.tcl search 'something'`
+`sh-cm.tcl s 'something'`
 
 ### Specific Search
 
@@ -154,6 +165,7 @@ You can search specific columns using this method. The syntax is the same as
 the add and set functions.  Example:
 
 `sh-cm.tcl search -host 127.0.0.1`
+`sh-cm.tcl s -host 127.0.0.1`
 
 ## Alter Existing Connection
 ```
