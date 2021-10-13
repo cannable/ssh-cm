@@ -1009,7 +1009,7 @@ proc search {args} {
 
 
 # ------------------------------------------------------------------------------
-# Main
+# Main/Database Handling
 
 set dbPath [getDBPath]
 
@@ -1115,32 +1115,86 @@ if {![file exists $dbPath]} {
     }
 }
 
-# Command interpreter
 
-if {$argc == 0} {
-    # Run the default command
+# ------------------------------------------------------------------------------
+# Main/Command Validation
+
+# Technically, this block should be before we open the database file. It's here
+# with the command processor switch statement for simplicity's sake
+
+
+# validCommands: Contains a list of all valid commands
+set validCommands {
+    add
+    connect
+    def
+    defaults
+    export
+    help
+    import
+    list
+    rm
+    search
+    set
+}
+
+# cmdAliases: An array where keys are subcommand aliases and values are the root
+#             subcommands
+array set cmdAliases {
+    c connect
+    s search
+}
+
+# noArgCmds: A list containing subcommands that take no arguments
+set noArgCmds {defaults list export import}
+
+
+# If no arguments are passed to the script, print general help and exit
+# gracefully
+if {[llength $argv] == 0} {
     printHelp
-} else {
-    switch -- [lindex $argv 0] {
-        connect     {connect {*}[lindex $argv 1]}
-        c           {connect {*}[lindex $argv 1]}
-        defaults    printDefaults
-        list        printConnections
-        def         {setDefault {*}[lrange $argv 1 end]}
-        add         {addConnection {*}[lrange $argv 1 end]}
-        set         {setConnection {*}[lrange $argv 1 end]}
-        rm          {rmConnection {*}[lrange $argv 1 end]}
-        export      exportCSV
-        import      importCSV
-        search      {search {*}[lrange $argv 1 end]}
-        s           {search {*}[lrange $argv 1 end]}
-        help        {printHelp {*}[lindex $argv 1]}
+    exit 0
+}
 
-        default {
-            puts stderr "Eh?"
-            printHelp
-        }
-    }
+set subcommand [lindex $argv 0]
+
+# If the subcommand is an alias, switch to the actual subcommand name
+if {[lsearch [array names cmdAliases] $subcommand] >= 0} {
+    set subcommand $cmdAliases($subcommand)
+}
+
+# If the subcommand isn't supported, print general help and exit angry
+if {[lsearch $validCommands $subcommand] < 0} {
+    puts stderr "Unknown instruction '$subcommand'\n."
+    printHelp
+    exit 1
+}
+
+# If the subcommand requires arguments and none are passed, print specific help
+# and exit angry
+if {[llength $argv] < 2 && [lsearch $noArgCmds $subcommand] < 0} {
+    puts stderr "Missing arguments to '$subcommand'.\n"
+    printHelp $subcommand
+    exit 1
+}
+
+
+# ------------------------------------------------------------------------------
+# Main/Command Processing
+
+# Command interpreter
+switch -- $subcommand {
+    connect     {connect {*}[lindex $argv 1]}
+    defaults    printDefaults
+    list        printConnections
+    def         {setDefault {*}[lrange $argv 1 end]}
+    add         {addConnection {*}[lrange $argv 1 end]}
+    set         {setConnection {*}[lrange $argv 1 end]}
+    rm          {rmConnection {*}[lrange $argv 1 end]}
+    export      exportCSV
+    import      importCSV
+    search      {search {*}[lrange $argv 1 end]}
+    help        {printHelp {*}[lindex $argv 1]}
 }
 
 db close
